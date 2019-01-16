@@ -4,6 +4,7 @@ if empty(glob('~/.vim/autoload/plug.vim'))
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
+set ts=4 sw=4
 call plug#begin()
 Plug 'nikitavoloboev/vim-night-blue'
 Plug 'vim-ruby/vim-ruby'
@@ -20,10 +21,13 @@ Plug 'autozimu/LanguageClient-neovim', {
     \ 'branch': 'next',
     \ 'do': 'bash install.sh',
     \ }
+Plug 'vim-syntastic/syntastic'
 
 " (Optional) Multi-entry selection UI.
 Plug 'junegunn/fzf'
 Plug 'tpope/vim-sensible'
+" HTML fancy editing
+Plug 'mattn/emmet-vim'
 call plug#end()
 
 let g:LanguageClient_serverCommands = {
@@ -36,9 +40,11 @@ let g:LanguageClient_serverCommands = {
     \ }
 " yarn global add vscode-css-languageserver-bin
 set expandtab
+set smarttab
 let g:deoplete#enable_at_startup = 1
 
 autocmd FileType java setlocal omnifunc=javacomplete#Complete
+autocmd FileType javascript setlocal sw=2 ts=2 sts=2
 
 set hidden
 
