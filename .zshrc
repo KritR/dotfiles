@@ -17,11 +17,11 @@ ZSH_THEME="minimal"
 # ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
 # Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+CASE_SENSITIVE="true"
 
 # Uncomment the following line to use hyphen-insensitive completion.
 # Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+HYPHEN_INSENSITIVE="true"
 
 # Uncomment the following line to disable bi-weekly auto-update checks.
 # DISABLE_AUTO_UPDATE="true"
@@ -63,8 +63,10 @@ ZSH_THEME="minimal"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-  git vi-mode
+  git vi-mode wd zsh-completions zsh-autosuggestions zsh-syntax-highlighting zsh-z
 )
+autoload -U compinit && compinit
+
 
 source $ZSH/oh-my-zsh.sh
 
@@ -98,3 +100,11 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 [[ -e ~/.profile ]] && emulate sh -c 'source ~/.profile'
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/krithikr/Downloads/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/krithikr/Downloads/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/krithikr/Downloads/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/krithikr/Downloads/google-cloud-sdk/completion.zsh.inc'; fi
+
+source /opt/local/share/tldr-cpp-client/autocomplete/complete.zsh
