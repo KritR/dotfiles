@@ -26,6 +26,13 @@ Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'vim-syntastic/syntastic'
+Plug 'junegunn/goyo.vim'
+Plug 'junegunn/limelight.vim'
+Plug 'logico/typewriter-vim'
+Plug 'godlygeek/tabular'
+Plug 'plasticboy/vim-markdown'
+Plug 'gosukiwi/vim-atom-dark'
+Plug 'cocopon/iceberg.vim'
 
 call plug#end()
 
@@ -91,7 +98,7 @@ function! OpenToRight()
   :wincmd p
 endfunction
 function! Netrw_mappings()
-    noremap V :call OpenToRight()<cr>
+    noremap <silent> <buffer> V :call OpenToRight()<cr>
 endfunction
 
 " coc.vim example items "
@@ -168,7 +175,6 @@ xmap af <Plug>(coc-funcobj-a)
 omap if <Plug>(coc-funcobj-i)
 omap af <Plug>(coc-funcobj-a)
 
-
 " Add `:Format` command to format current buffer.
 command! -nargs=0 Format :call CocAction('format')
 
@@ -178,7 +184,53 @@ command! -nargs=? Fold :call     CocAction('fold', <f-args>)
 " Add `:OR` command for organize imports of the current buffer.
 command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
+function! s:goyo_enter()
+  if executable('tmux') && strlen($TMUX)
+    silent !tmux set status off
+    silent !tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z
+  endif
+  set noshowmode
+  set noshowcmd
+  set scrolloff=999
+  set wrap
+  set linebreak
+  colorscheme typewriter
+  let &t_SI = "\e[5 q"
+  let &t_EI = "\e[1 q"
+  Limelight
+  MUcompleteAutoToggle
+  let b:coc_suggest_disable=1
+endfunction
 
+function! s:goyo_leave()
+  if executable('tmux') && strlen($TMUX)
+    silent !tmux set status on
+    silent !tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z
+  endif
 
+  set nowrap
+  set showmode
+  set showcmd
+  set scrolloff=5
+  Limelight!
+  MUcompleteAutoToggle
+  let b:coc_suggest_disable=0
 
+  colorscheme iceberg
+endfunction
 
+autocmd! User GoyoEnter nested call <SID>goyo_enter()
+autocmd! User GoyoLeave nested call <SID>goyo_leave()
+noremap <F12> :Goyo <cr>
+
+let g:vim_markdown_folding_disabled = 1
+
+let &t_ut=''
+"set t_Co=256
+"set background=dark
+
+colorscheme iceberg
+set termguicolors
+let g:airline_theme='serene'
+
+set scrolloff=10
