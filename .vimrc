@@ -4,14 +4,13 @@ if empty(glob('~/.vim/autoload/plug.vim'))
   autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
-set ts=2 sw=2
+set et ts=2 sw=2
 
 
 let g:plug_url_format="git@github.com:%s.git"
 
 call plug#begin()
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
-Plug 'lambdalisue/fern.vim'
 
 " (Optional) Multi-entry selection UI.
 Plug 'junegunn/fzf'
@@ -19,39 +18,38 @@ Plug 'tpope/vim-sensible'
 " HTML fancy editing
 Plug 'mattn/emmet-vim'
 Plug 'tpope/vim-surround'
+Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-sleuth'
 Plug 'tpope/vim-commentary'
 Plug 'lifepillar/vim-mucomplete'
-Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'vim-airline/vim-airline'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'vim-syntastic/syntastic'
 Plug 'junegunn/goyo.vim'
 Plug 'junegunn/limelight.vim'
 Plug 'logico/typewriter-vim'
 Plug 'godlygeek/tabular'
-Plug 'plasticboy/vim-markdown'
 Plug 'gosukiwi/vim-atom-dark'
 Plug 'cocopon/iceberg.vim'
+Plug 'dense-analysis/ale'
+Plug 'jonathanfilip/vim-dbext'
+Plug 'sheerun/vim-polyglot'
+Plug 'kritr/vim-keysound'
+Plug 'skywind3000/asyncrun.vim'
+Plug 'pedsm/sprint'
 
 call plug#end()
-
-
-"let g:LanguageClient_serverCommands = {
-"    \ 'css': ['css-languageserver','--stdio'],
-"    \ 'html': ['html-languageserver','--stdio'],
-"    \ 'json': ['json-languageserver','--stdio'],
-"    \ 'python': ['pyls'],
-"    \ 'ruby': ['solargraph', 'stdio'],
-"    \ 'docker': ['docker-langserver', '--stdio'],
-"    \ 'rust' : ['~/.cargo/bin/rustup', 'run', 'stable', 'rls'],
-"    \ 'javascript' : ['javascript-typescript-stdio'],
-"    \ 'typescript' : ['javascript-typescript-stdio'],
-"    \ 'elixir'     : ['elixir-ls'],
-"    \ }
-" yarn global add vscode-css-languageserver-bin
 set expandtab
 set smarttab
+
+augroup typescript_types
+  au BufNewFile,BufRead *.ts set filetype=typescript
+  au BufNewFile,BufRead *.tsx set filetype=typescript.tsx
+augroup END
+
+
+let g:mucomplete#user_mappings = { 'sqla' : "\<c-c>a" }
+let g:mucomplete#chains = { 'sql' : ['file', 'sqla', 'keyn'] }
 
 autocmd FileType javascript setlocal sw=2 ts=2 sts=2
 
@@ -74,32 +72,12 @@ let g:netrw_banner = 0
 let g:netrw_liststyle = 3
 let g:netrw_browse_split = 0
 let g:netrw_altv = 1
-let g:netrw_winsize = 20
+let g:netrw_winsize = 30
 let g:netrw_list_hide='.*\.swp$'
 "let g:netrw_fastbrowse=0
 "let g:netrw_chgwin=0
 
 "nnoremap <silent> <S-CR> :rightbelow 20vs<CR>:e .<CR>
-nnoremap <silent> <C-M> :Lex <CR>
-
-" open file vertically to the right
-
-augroup netrw_mappings
-    "autocmd FileType netrw setl bufhidden=wipe
-    autocmd!
-    autocmd FileType netrw call Netrw_mappings()
-augroup END
-function! OpenToRight()
-  :set winfixwidth
-  :normal v
-  :wincmd L
-  :wincmd p
-  :close
-  :wincmd p
-endfunction
-function! Netrw_mappings()
-    noremap <silent> <buffer> V :call OpenToRight()<cr>
-endfunction
 
 " coc.vim example items "
 
@@ -189,6 +167,7 @@ function! s:goyo_enter()
     silent !tmux set status off
     silent !tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z
   endif
+  setlocal spell
   set noshowmode
   set noshowcmd
   set scrolloff=999
@@ -208,6 +187,7 @@ function! s:goyo_leave()
     silent !tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z
   endif
 
+  setlocal nospell
   set nowrap
   set showmode
   set showcmd
@@ -226,11 +206,26 @@ noremap <F12> :Goyo <cr>
 let g:vim_markdown_folding_disabled = 1
 
 let &t_ut=''
-"set t_Co=256
-"set background=dark
+set t_Co=256
+set background=dark
 
 colorscheme iceberg
 set termguicolors
 let g:airline_theme='serene'
 
 set scrolloff=10
+
+" augroup SyntaxSettings
+"     autocmd!
+"     autocmd BufNewFile,BufRead *.tsx set filetype=typescript
+" augroup END
+
+let g:ctrlp_map = '<leader>p'
+let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+
+
+nnoremap <leader>b :ls<CR>:b<space>
+nnoremap <leader>t :CtrlPBuffer<CR>
+
+" set clipboard=unnamed
+set re=2
