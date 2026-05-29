@@ -3,17 +3,21 @@ local M = {}
 local log = hs.logger.new("ghostty", "info")
 
 local APP_NAME = "Ghostty"
+local APP_BUNDLE_ID = "com.mitchellh.ghostty"
 local NEW_WINDOW_MODS = { "cmd", "ctrl" }
 local NEW_WINDOW_KEY = "t"
 local SMART_PASTE_KEY = hs.keycodes.map.v
 
-local USE_SHELL_HELPER = true
-local SHELL_HELPER = os.getenv("HOME") .. "/.local/bin/new-centered-ghostty"
-
 local WINDOW_WIDTH = 1000
 local WINDOW_HEIGHT = 700
+local WINDOW_FIND_ATTEMPTS = 10
+local WINDOW_FIND_INTERVAL = 0.10
 
 local smartPasteTap = nil
+
+local function ghosttyApp()
+  return hs.application.get(APP_BUNDLE_ID) or hs.application.get(APP_NAME) or hs.application.get(APP_NAME:lower())
+end
 
 local function frontmostAppName()
   local app = hs.application.frontmostApplication()
@@ -21,7 +25,18 @@ local function frontmostAppName()
 end
 
 local function isGhosttyFrontmost()
-  return frontmostAppName() == APP_NAME
+  local app = hs.application.frontmostApplication()
+
+  if not app then
+    return false
+  end
+
+  if app:bundleID() == APP_BUNDLE_ID then
+    return true
+  end
+
+  local name = app:name()
+  return name and name:lower() == APP_NAME:lower()
 end
 
 local function tableContains(t, value)
@@ -133,8 +148,24 @@ local function centerWindowOnMouseScreen(win, width, height)
   }, 0)
 end
 
-local function openCenteredGhosttyPureHammerspoon()
-  local app = hs.application.get(APP_NAME)
+local function findNewGhosttyWindow(before)
+  local ghostty = ghosttyApp()
+
+  if not ghostty then
+    return nil
+  end
+
+  for _, win in ipairs(ghostty:allWindows()) do
+    if win:isStandard() and not before[win:id()] then
+      return win
+    end
+  end
+
+  return ghostty:mainWindow() or ghostty:focusedWindow()
+end
+
+local function openCenteredGhostty()
+  local app = ghosttyApp()
   local before = {}
 
   if app then
@@ -156,43 +187,25 @@ end tell
     return
   end
 
-  hs.timer.doAfter(0.20, function()
-    local ghostty = hs.application.get(APP_NAME)
+  log.i("Ghostty AppleScript result: " .. hs.inspect(result))
 
-    if not ghostty then
-      return
-    end
-
-    local newWin = nil
-
-    for _, win in ipairs(ghostty:allWindows()) do
-      if win:isStandard() and not before[win:id()] then
-        newWin = win
-        break
-      end
-    end
-
-    newWin = newWin or ghostty:mainWindow() or ghostty:focusedWindow()
+  local attempts = 0
+  local function centerWhenAvailable()
+    attempts = attempts + 1
+    local newWin = findNewGhosttyWindow(before)
 
     if newWin then
       centerWindowOnMouseScreen(newWin, WINDOW_WIDTH, WINDOW_HEIGHT)
+      log.i("Centered Ghostty window " .. tostring(newWin:id()))
+    elseif attempts < WINDOW_FIND_ATTEMPTS then
+      hs.timer.doAfter(WINDOW_FIND_INTERVAL, centerWhenAvailable)
     else
       log.w("Could not find new Ghostty window to center")
+      hs.alert.show("Could not find Ghostty window")
     end
-  end)
-end
-
-local function openCenteredGhostty()
-  if USE_SHELL_HELPER then
-    hs.task.new("/bin/bash", function(exitCode, _, stdErr)
-      if exitCode ~= 0 then
-        log.e("new-centered-ghostty failed: " .. (stdErr or ""))
-        hs.alert.show("new-centered-ghostty failed")
-      end
-    end, { "-lc", string.format("%q", SHELL_HELPER) }):start()
-  else
-    openCenteredGhosttyPureHammerspoon()
   end
+
+  hs.timer.doAfter(WINDOW_FIND_INTERVAL, centerWhenAvailable)
 end
 
 function M.start()
@@ -200,5 +213,6 @@ function M.start()
   hs.hotkey.bind(NEW_WINDOW_MODS, NEW_WINDOW_KEY, openCenteredGhostty)
 end
 
-return M
+M.openCenteredGhostty = openCenteredGhostty
 
+return M
