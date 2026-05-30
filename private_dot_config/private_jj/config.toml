@@ -8,3 +8,6 @@ email = "equal.dog1561@krithikrao.com"
 diff-formatter = ["difft", "--color=always", "$left", "$right"]
 editor = ["nvim", "--cmd", "let g:flatten_wait=1"]
 
+[templates]
+git_push_bookmark = "config(\"user.name\").as_string() ++ \"-push-\" ++ change_id.short()"
+
